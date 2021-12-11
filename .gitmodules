@@ -1,3 +1,6 @@
 [submodule "cc65"]
 	path = cc65
 	url = https://github.com/cc65/cc65.git
+[submodule "mega65-libc"]
+	path = mega65-libc
+	url = https://github.com/MEGA65/mega65-libc.git
