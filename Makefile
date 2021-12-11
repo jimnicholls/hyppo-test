@@ -35,13 +35,15 @@ LDFLAGS = --config mega65.cfg
 
 #-------------------------------------------------------------------------------
 
+MEGA65_S_MODULES =
+MEGA65_C_MODULES = conio.c memory.c
 MEGA65_LIBC_DIR = mega65-libc/cc65
 MEGA65_INC_DIR = $(MEGA65_LIBC_DIR)/include
 MEGA65_SRC_DIR = $(MEGA65_LIBC_DIR)/src
+MEGA65_LIB_MEMBERS = ${addsuffix ),${addprefix mega65.lib(,$(notdir $(MEGA65_S_MODULES:.s=.o) $(MEGA65_C_MODULES:.c=.o))}}
 
-mega65.lib: mega65.lib(conio.o) mega65.lib(memory.o)
-
-mega65.lib(%.o): CFLAGS += -I $(MEGA65_INC_DIR)
+mega65.lib: $(MEGA65_LIB_MEMBERS)
+mega65.lib(%.o): CFLAGS += -I $(MEGA65_INC_DIR) -Oirs
 mega65.lib(%.o): $(MEGA65_SRC_DIR)/%.o
 	$(AR) r $@ $^
 
