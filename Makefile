@@ -11,6 +11,10 @@ all: $(TARGETS)
 
 clean:
 	-rm -f *.lib *.lbl *.lst *.map *.o *.prg
+	-rm -f $(addprefix $(MEGA65_SRC_DIR)/, $(MEGA65_S_MODULES:.s=.o) $(MEGA65_S_MODULES:.s=.lst))
+	-rm -f $(addprefix $(MEGA65_SRC_DIR)/, $(MEGA65_C_MODULES:.c=.o) $(MEGA65_C_MODULES:.c=.s) $(MEGA65_C_MODULES:.c=.lst))
+	-rm -f $(CC65_COMMON_SRC_FILES:.s=.o) $(CC65_COMMON_SRC_FILES:.s=.lst)
+	-rm -f $(CC65_RUNTIME_SRC_FILES:.s=.o) $(CC65_RUNTIME_SRC_FILES:.s=.lst)
 
 
 #-------------------------------------------------------------------------------
