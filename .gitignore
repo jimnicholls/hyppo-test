@@ -1,0 +1,5 @@
+*.lbl
+*.lst
+*.map
+*.o
+*.prg
