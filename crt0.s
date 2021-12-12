@@ -17,10 +17,6 @@
 init_status     := $1104
 set_environment := $038d
 
-; VIC registers
-vic_base        := $d000
-border_col      := vic_base + $20
-
 
 .segment        "LOADADDR"
         .addr   *+2
@@ -43,16 +39,19 @@ border_col      := vic_base + $20
 .segment        "STARTUP"
 .proc           startup
         sei
+        tsx                                             ; Save the system stack ptr
+        stx     sp_save
         jsr     init
-        jsr     zerobss                                 ; Cannot call any code in the ONCE segment from this point
+        jsr     zerobss
+        cli
         jsr     callmain
 .endproc                                                ; Falls through to _exit
 .proc           _exit                                   ; Must immediately follow startup
+        sei
         jsr     done
-        lda     #0
-@10:    sta     border_col
-        inc
-        bra     @10
+        ldx     sp_save                                 ; Restore stack pointer
+        txs
+        rts
 .endproc
 
 
@@ -87,9 +86,14 @@ border_col      := vic_base + $20
 
 .segment        "ONCE"
 .proc           init_memory_map
-        lda     #5                                      ; Map ROM into $C000-$CFFF
-        tsb     $d030
-        lda     #%101                                   ; … I/O into $D000—$DFFF
+        lda     $d030                                   ; Map ROM into $C000-$CFFF
+        sta     d030_save
+        ora     #%100000
+        sta     $d030
+        lda     $01                                     ; … I/O into $D000—$DFFF
+        sta     mmu_save
+        ora     #%00000101
+        and     #%11111101
         sta     $1
         lda     #0                                      ; … bank 0 RAM into $0000 - $BFFF
         tax
@@ -102,6 +106,7 @@ border_col      := vic_base + $20
 .endproc
 
 
+;
 .segment        "CODE"
 .proc           done
 .pushcpu
@@ -112,9 +117,20 @@ border_col      := vic_base + $20
         sta     sp, x
         dex
         bpl     @10
+        rts
+        lda     mmu_save                                ; Restore memory configuration
+        sta     $01                                     ; … but DON'T restore the memory map!
+        lda     d030_save                               ; … We're still executing, and the kernel
+        sta     $d030                                   ; … will take care of that
+        lda     #1                                      ; Resume calling BASIC in the kernel's IRQ handler
+        tsb     init_status                             ; … once the kernel clears the I flag
+        rts
 .popcpu
 .endproc
 
 
 .segment        "INIT"
+d030_save:      .res 1
+mmu_save:       .res 1
+sp_save:        .res 1
 zp_save:        .res zpspace
