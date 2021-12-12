@@ -69,6 +69,7 @@ cc65-common.lib(%.o): $(CC65_COMMON_SRC_DIR)/%.o
 
 clean:
 	-rm -f *.lib *.lbl *.lst *.map *.o *.prg
+	-rm -f $(TARGETS:.prg=.s)
 	-rm -f $(CC65_COMMON_C_FILES:.c=.o) $(CC65_COMMON_C_FILES:.c=.s) $(CC65_COMMON_C_FILES:.c=.lst)
 	-rm -f $(CC65_COMMON_S_FILES:.s=.o) $(CC65_COMMON_S_FILES:.s=.lst)
 	-rm -f $(CC65_RUNTIME_SRC_FILES:.s=.o) $(CC65_RUNTIME_SRC_FILES:.s=.lst)
