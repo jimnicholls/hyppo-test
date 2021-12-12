@@ -13,7 +13,7 @@ AR = ar65
 AS = ca65
 ASFLAGS = --target none --cpu 4510 -W1
 CC = cc65
-CFLAGS = --target none --cpu 65c02
+CFLAGS = --target none --cpu 6502 -I $(MEGA65_INC_DIR)
 LD = ld65
 LDFLAGS = --config mega65.cfg
 
@@ -37,7 +37,7 @@ MEGA65_SRC_DIR = $(MEGA65_LIBC_DIR)/src
 MEGA65_LIB_MEMBERS = ${addsuffix ),${addprefix mega65.lib(,$(notdir $(MEGA65_S_MODULES:.s=.o) $(MEGA65_C_MODULES:.c=.o))}}
 
 mega65.lib: $(MEGA65_LIB_MEMBERS)
-mega65.lib(%.o): CFLAGS += -I $(MEGA65_INC_DIR) -Oirs
+mega65.lib(%.o): CFLAGS += -Oirs
 mega65.lib(%.o): $(MEGA65_SRC_DIR)/%.o
 	$(AR) r $@ $^
 
@@ -60,7 +60,7 @@ CC65_COMMON_S_FILES := $(wildcard $(CC65_COMMON_SRC_DIR)/*.s)
 CC65_COMMON_LIB_MEMBERS := ${addsuffix ),${addprefix cc65-common.lib(,$(notdir $(CC65_COMMON_C_FILES:.c=.o) $(CC65_COMMON_S_FILES:.s=.o))}}
 cc65-common.lib: $(CC65_COMMON_LIB_MEMBERS)
 cc65-common.lib(%.o): ASFLAGS = --target none --cpu 65c02
-cc65-common.lib(%.o): CFLAGS += -Oirs
+cc65-common.lib(%.o): CFLAGS = --target none --cpu 6502 -Oirs
 cc65-common.lib(%.o): $(CC65_COMMON_SRC_DIR)/%.o
 	$(AR) r $@ $^
 
