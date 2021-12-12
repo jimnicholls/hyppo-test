@@ -18,9 +18,9 @@ These test were performed using:
 
 | Trap | Func | Service | Program | Status |
 | --- | --- | --- | --- | --- |
-| $00 | $00 | Get Hypervisor Version | Not written | Not tested |
+| $00 | $00 | Get Hypervisor Version | [hyppo-ver.prg](hyppo-ver.c) | Passed |
 | $00 | $38 | Get Current Error Code | Not written | Not tested |
-| $00 | $38 | Setup Transfer Area for Other Calls | Not written Not tested |
+| $00 | $38 | Setup Transfer Area for Other Calls | Not written | Not tested |
 
 
 ### Disk/storage hypervisor calls
@@ -123,8 +123,7 @@ These test were performed using:
 ## License
 
 Except for the git submodules cc65 and mega65-libc,
-this code is [licensed](https://github.com/jimnicholls/hyppo-test/blob/main/LICENSE)
-and is
+your usage of this code is subject to [LICENSE](LICENSE).
 
 Copyright &copy; 2021, Jim Nicholls<br>
 All rights reserved.

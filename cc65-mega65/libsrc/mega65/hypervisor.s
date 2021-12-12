@@ -1,5 +1,5 @@
 .export         _hypervisor_result
-.export         _trigger_hypervisor_trap_0
+.export         _trigger_hypervisor_trap
 
 .import         decsp1
 .importzp       sp
@@ -9,8 +9,8 @@ trap_reg_base   := $d640
 
 
 .code
-.proc           _trigger_hypervisor_trap_0
-; void __fastcall__ trigger_hypervisor_trap_0(unsigned char trap, unsigned char func);
+.proc           _trigger_hypervisor_trap
+; void __fastcall__ trigger_hypervisor_trap(unsigned char trap, unsigned char func)
 .pushcpu
 .p4510
         tay                                             ; Save func into y

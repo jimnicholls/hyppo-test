@@ -27,7 +27,7 @@ set_environment := $038d
         .word   1                                       ; Line number
         .byte   $FE, $02, "0"                           ; BANK 0
         .byte   ":"
-        .byte   $9E                                     ; SYS Start
+        .byte   $9E                                     ; SYS startup
         .byte   <(((startup /  1000) .mod 10) + '0')
         .byte   <(((startup /   100) .mod 10) + '0')
         .byte   <(((startup /    10) .mod 10) + '0')
@@ -106,7 +106,6 @@ set_environment := $038d
 .endproc
 
 
-;
 .segment        "CODE"
 .proc           done
 .pushcpu

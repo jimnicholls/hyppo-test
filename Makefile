@@ -1,4 +1,4 @@
-TARGETS = get-hypervisor-version.prg
+TARGETS = hyppo-ver.prg
 
 .PHONY: all clean
 .SECONDARY:
