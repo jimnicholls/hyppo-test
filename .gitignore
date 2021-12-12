@@ -1,4 +1,3 @@
-!crt0.s
 *.lib
 *.lbl
 *.lst
@@ -6,3 +5,4 @@
 *.o
 *.prg
 *.s
+!crt0.s
