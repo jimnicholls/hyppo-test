@@ -1,4 +1,5 @@
-TARGETS = hyppo-ver.prg
+TARGETS =	hyppo-ver.prg \
+			transfer-area.prg
 
 .PHONY: all clean
 .SECONDARY:

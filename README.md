@@ -18,9 +18,9 @@ These test were performed using:
 
 | Trap | Func | Service | Program | Status |
 | --- | --- | --- | --- | --- |
-| $00 | $00 | Get Hypervisor Version | [hyppo-ver.prg](hyppo-ver.c) | Passed |
-| $00 | $38 | Get Current Error Code | Not written | Not tested |
-| $00 | $38 | Setup Transfer Area for Other Calls | Not written | Not tested |
+| $00 | $00 | Get Hypervisor Version | [hyppo-ver.prg](hyppo-ver.c) | Passes |
+| $00 | $38 | Get Current Error Code | [transfer-area.prg](transfer-area.c) | Passes |
+| $00 | $3a | Setup Transfer Area for Other Calls | [transfer-area.prg](transfer-area.c) | Passes |
 
 
 ### Disk/storage hypervisor calls
