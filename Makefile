@@ -29,7 +29,7 @@ LDFLAGS = --config mega65.cfg
 
 #-------------------------------------------------------------------------------
 
-MEGA65_S_MODULES =
+MEGA65_S_MODULES = fileio.s
 MEGA65_C_MODULES = conio.c memory.c
 MEGA65_LIBC_DIR = mega65-libc/cc65
 MEGA65_INC_DIR = $(MEGA65_LIBC_DIR)/include
