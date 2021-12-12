@@ -4,7 +4,6 @@
 .export         _exit
 
 .import         __MAIN_START__, __MAIN_SIZE__, __STACKSIZE__
-.import         _clrscr, _conioinit
 .import         _main
 .import         callmain, donelib, initlib, zerobss
 
@@ -45,7 +44,6 @@ border_col      := vic_base + $20
 .proc           startup
         sei
         jsr     init
-        cli
         jsr     zerobss                                 ; Cannot call any code in the ONCE segment from this point
         jsr     callmain
 .endproc                                                ; Falls through to _exit
@@ -64,8 +62,6 @@ border_col      := vic_base + $20
         trb     init_status
         jsr     init_memory_map
         jsr     init_cc65
-        jsr     _conioinit
-       ;jsr     _clrscr
         rts
 .endproc
 
