@@ -1,6 +1,8 @@
+!crt0.s
 *.lib
 *.lbl
 *.lst
 *.map
 *.o
 *.prg
+*.s
