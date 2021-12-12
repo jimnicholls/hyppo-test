@@ -1,5 +1,6 @@
 .export         _hypervisor_geterrorcode
 .export         _hypervisor_result
+.export         _hypervisor_transfer_area
 .export         _trigger_hypervisor_trap
 .export         _trigger_hypervisor_trap_with_y
 
@@ -100,3 +101,9 @@ trap_reg_base   := $d640
 
 .bss
 _hypervisor_result: .res 4                              ; a, x, y, z
+
+
+
+.segment        "TRANSAREA"
+.align $100
+_hypervisor_transfer_area: .res $100
