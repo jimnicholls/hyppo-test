@@ -54,7 +54,7 @@ trap_reg_base   := $d640
         nop                                             ; Mandiatory nop
         jsr     store_hypervisor_result
         jsr     incsp1                                  ; Clean up the stack
-        sta     _hypervisor_result+4                    ; Return the C flag
+        lda     _hypervisor_result+4                    ; Return the C flag
         rts
 .popcpu
 .endproc
@@ -76,7 +76,7 @@ trap_reg_base   := $d640
         nop                                             ; Mandiatory nop
         jsr     store_hypervisor_result
         jsr     incsp2                                  ; Clean up the stack
-        sta     _hypervisor_result+4                    ; Return the C flag
+        lda     _hypervisor_result+4                    ; Return the C flag
         rts
 .popcpu
 .endproc
