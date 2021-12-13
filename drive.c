@@ -6,6 +6,7 @@
 #include <string.h>
 
 
+static uint8_t hyppo_get_current_drive(void);
 static uint8_t hyppo_get_default_drive(void);
 static void read_input_line(void);
 
@@ -16,6 +17,7 @@ static char input_line[MAX_INPUT_LINE];
 static char* const cmd = input_line;
 static char* const arg = input_line + MAX_COMMAND_LEN + 1;
 
+static uint8_t current_drive;
 
 static const char* const help_text = (
 "SEL NUM        SELECT DRIVE (SD CARD PARTITION)                          $00:$06"
@@ -47,8 +49,9 @@ static const char* const help_text = (
 void main(void) {
     printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
     printf("      DEFAULT DRIVE: %hhu\r", hyppo_get_default_drive());
+    current_drive = hyppo_get_current_drive();
     for (;;) {
-        printf("\r\x05> ");
+        printf("\r\x05%hhu> ", current_drive);
         read_input_line();
         putchar('\x9a');
         putchar('\r');
@@ -71,7 +74,7 @@ static void read_input_line(void)
     uint8_t i;
     for (;;) {
         c = (char)fgetc(stdin);
-        if (c != '>' && c != ' ') {
+        if (c >= 'A' && c <= 'Z') {
             break;
         }
     }
@@ -86,6 +89,13 @@ static void read_input_line(void)
         c = (char)fgetc(stdin);
     }
     input_line[MAX_INPUT_LINE - 1] = '\0';
+}
+
+
+static uint8_t hyppo_get_current_drive(void) {
+    // $00:$04 always succeeds
+    trigger_hypervisor_trap(0x00, 0x04);
+    return hypervisor_result.a;
 }
 
 
