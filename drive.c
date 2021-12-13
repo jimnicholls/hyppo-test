@@ -9,9 +9,11 @@
 static uint8_t hyppo_get_current_partition(void);
 static uint8_t hyppo_get_default_partition(void);
 static void read_input_line(void);
+static void report_success_or_failed(void);
+static void select_partition(void);
 
 
-#define MAX_INPUT_LINE 10
+#define MAX_INPUT_LINE 80
 #define MAX_COMMAND_LEN 3
 static char input_line[MAX_INPUT_LINE];
 static char* const cmd = input_line;
@@ -52,16 +54,20 @@ void main(void) {
     printf("      DEFAULT PARTITION: %hhu\r", hyppo_get_default_partition());
     current_partition = hyppo_get_current_partition();
     for (;;) {
+        memset(input_line, 0, MAX_INPUT_LINE - 1);
         printf("\r\x05%hhu> ", current_partition);
         read_input_line();
         putchar('\x9a');
         putchar('\r');
-        if (strcmp("X", cmd) == 0) {
+        printf("CMD [%s] ARG [%s]\r", cmd, arg);
+        if (strncmp("X", cmd, 1) == 0) {
             break;
-        } else if (strcmp("H", cmd) == 0) {
+        } else if (strncmp("H", cmd, 1) == 0) {
             puts(help_text);
+        } else if (strncmp("SEL", cmd, 3) == 0) {
+            select_partition();
         } else {
-            puts("\a\x1C? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
+            puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT\r");
         }
     }
     putchar('\x05');
@@ -94,14 +100,33 @@ static void read_input_line(void)
 
 
 static uint8_t hyppo_get_current_partition(void) {
-    // $00:$04 always succeeds
     trigger_hypervisor_trap(0x00, 0x04);
     return hypervisor_result.a;
 }
 
 
 static uint8_t hyppo_get_default_partition(void) {
-    // $00:$02 always succeeds
     trigger_hypervisor_trap(0x00, 0x02);
     return hypervisor_result.a;
+}
+
+
+static void report_success_or_failed(void) {
+    if (hypervisor_result.c) {
+        puts("  OK");
+    } else {
+        printf("\a\x1C! FAILED WITH ERROR %hhu\r", hypervisor_geterrorcode());
+    }
+}
+
+
+static void select_partition(void) {
+    int part = atoi(arg);
+    if (part < 0 || part > 255) {
+        puts("\a\x81? NUMBER MUST BE BETWEEN 0 AND 255");
+    } else {
+        trigger_hypervisor_trap_with_x(0x00, 0x06, part);
+        report_success_or_failed();
+        current_partition = hyppo_get_current_partition();
+    }
 }

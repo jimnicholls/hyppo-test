@@ -29,7 +29,7 @@ These test were performed using:
 | --- | --- | --- | --- | --- |
 | $00 | $02 | Get Default Drive (SD card Partition) | [drive.prg](drive.c) | Passes |
 | $00 | $04 | Get Current Drive (SD card Partition) | [drive.prg](drive.c) | Passes |
-| $00 | $06 | Select Drive (SD card Partition) | Not written | Not tested |
+| $00 | $06 | Select Drive (SD card Partition) | [drive.prg](drive.c) | Fails due to a Hyppo bug |
 | $00 | $08 | Get Disk Size | Not written | Not implemented |
 | $00 | $0A | Get Current Working Directory | Not written | Not implemented |
 | $00 | $0C | Change Working Directory | Not written | Not tested |

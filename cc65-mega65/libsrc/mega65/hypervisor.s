@@ -2,6 +2,7 @@
 .export         _hypervisor_result
 .export         _hypervisor_transfer_area
 .export         _trigger_hypervisor_trap
+.export         _trigger_hypervisor_trap_with_x
 .export         _trigger_hypervisor_trap_with_y
 
 .import         incsp1, incsp2
@@ -54,6 +55,28 @@ trap_reg_base   := $d640
         nop                                             ; Mandiatory nop
         jsr     store_hypervisor_result
         jsr     incsp1                                  ; Clean up the stack
+        lda     _hypervisor_result+4                    ; Return the C flag
+        rts
+.popcpu
+.endproc
+
+
+
+.code
+.proc           _trigger_hypervisor_trap_with_x
+; void __fastcall__ trigger_hypervisor_trap_with_y(uint8_t trap, uint8_t func, uint8_t x_arg)
+.pushcpu
+.p4510
+        tax                                             ; Move x_arg into x
+        ldz     #1                                      ; Load trap into y
+        ldaspz
+        tay
+        dez                                             ; Load func into a
+        ldaspz
+        sta     trap_reg_base, y                        ; Write func into trap register y
+        nop                                             ; Mandiatory nop
+        jsr     store_hypervisor_result
+        jsr     incsp2                                  ; Clean up the stack
         lda     _hypervisor_result+4                    ; Return the C flag
         rts
 .popcpu
