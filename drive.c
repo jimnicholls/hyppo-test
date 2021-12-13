@@ -6,8 +6,8 @@
 #include <string.h>
 
 
-static uint8_t hyppo_get_current_drive(void);
-static uint8_t hyppo_get_default_drive(void);
+static uint8_t hyppo_get_current_partition(void);
+static uint8_t hyppo_get_default_partition(void);
 static void read_input_line(void);
 
 
@@ -17,10 +17,8 @@ static char input_line[MAX_INPUT_LINE];
 static char* const cmd = input_line;
 static char* const arg = input_line + MAX_COMMAND_LEN + 1;
 
-static uint8_t current_drive;
-
 static const char* const help_text = (
-"SEL NUM        SELECT DRIVE (SD CARD PARTITION)                          $00:$06"
+"SEL NUM        SELECT SD CARD PARTITION                                  $00:$06"
 "CWD            CHANGE WORKING DIRECTORY                                  $00:$0C"
 "OPD            OPEN DIRECTORY                                            $00:$12"
 "RNX            READ NEXT DIRECTORY ENTRY                                 $00:$14"
@@ -46,12 +44,15 @@ static const char* const help_text = (
 );
 
 
+static uint8_t current_partition;
+
+
 void main(void) {
     printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
-    printf("      DEFAULT DRIVE: %hhu\r", hyppo_get_default_drive());
-    current_drive = hyppo_get_current_drive();
+    printf("      DEFAULT PARTITION: %hhu\r", hyppo_get_default_partition());
+    current_partition = hyppo_get_current_partition();
     for (;;) {
-        printf("\r\x05%hhu> ", current_drive);
+        printf("\r\x05%hhu> ", current_partition);
         read_input_line();
         putchar('\x9a');
         putchar('\r');
@@ -92,14 +93,14 @@ static void read_input_line(void)
 }
 
 
-static uint8_t hyppo_get_current_drive(void) {
+static uint8_t hyppo_get_current_partition(void) {
     // $00:$04 always succeeds
     trigger_hypervisor_trap(0x00, 0x04);
     return hypervisor_result.a;
 }
 
 
-static uint8_t hyppo_get_default_drive(void) {
+static uint8_t hyppo_get_default_partition(void) {
     // $00:$02 always succeeds
     trigger_hypervisor_trap(0x00, 0x02);
     return hypervisor_result.a;
