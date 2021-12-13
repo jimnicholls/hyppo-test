@@ -12,7 +12,7 @@ They were created to exercise the Hypervisor on [xemu](https://github.com/lgblgb
 These test were performed using:
 - Mega65 MegaOS Hypervisor v00.16; git: hwsc,20211208.20,A390DFE
 - Mega65 ROM 920265
-- xemu custom-build hyppo@c22886
+- xemu custom-build hyppo@0a9cda6
 
 ### General services
 
@@ -27,7 +27,7 @@ These test were performed using:
 
 | Trap | Func | Service | Program | Status |
 | --- | --- | --- | --- | --- |
-| $00 | $02 | Get Default Drive (SD card Partition) | Not written | Not tested |
+| $00 | $02 | Get Default Drive (SD card Partition) | [drive.prg](drive.c) | Passes |
 | $00 | $04 | Get Current Drive (SD card Partition) | Not written | Not tested |
 | $00 | $06 | Select Drive (SD card Partition) | Not written | Not tested |
 | $00 | $08 | Get Disk Size | Not written | Not implemented |

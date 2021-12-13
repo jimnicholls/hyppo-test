@@ -6,6 +6,7 @@
 #include <string.h>
 
 
+static uint8_t hyppo_get_default_drive(void);
 static void read_input_line(void);
 
 
@@ -44,7 +45,8 @@ static const char* const help_text = (
 
 
 void main(void) {
-    printf("%s\r", "\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      ");
+    printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
+    printf("      DEFAULT DRIVE: %hhu\r", hyppo_get_default_drive());
     for (;;) {
         printf("\r\x05> ");
         read_input_line();
@@ -84,4 +86,11 @@ static void read_input_line(void)
         c = (char)fgetc(stdin);
     }
     input_line[MAX_INPUT_LINE - 1] = '\0';
+}
+
+
+static uint8_t hyppo_get_default_drive(void) {
+    // $00:$02 always succeeds
+    trigger_hypervisor_trap(0x00, 0x02);
+    return hypervisor_result.a;
 }
