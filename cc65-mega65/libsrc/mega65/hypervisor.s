@@ -102,7 +102,7 @@ trap_reg_base   := $d640
 
 
 .bss
-_hypervisor_result: .res 4                              ; a, x, y, z
+_hypervisor_result: .res 5                              ; a, x, y, z, c
 
 
 
