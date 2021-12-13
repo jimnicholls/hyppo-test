@@ -1,4 +1,5 @@
-TARGETS =	hyppo-ver.prg \
+TARGETS =	drive.prg \
+			hyppo-ver.prg \
 			transfer-area.prg
 
 .PHONY: all clean
@@ -47,7 +48,7 @@ mega65.lib(%.o): $(MEGA65_SRC_DIR)/%.o
 CC65_DIR = cc65
 
 CC65_CBM_C_FILES :=
-CC65_CBM_S_FILES := filedes.s oserrlist.s oserror.s rwcommon.s write.s
+CC65_CBM_S_FILES := filedes.s oserrlist.s oserror.s read.s rwcommon.s write.s
 CC65_CBM_SRC_DIR = $(CC65_DIR)/libsrc/cbm
 CC65_CBM_C_FILES := $(addprefix $(CC65_CBM_SRC_DIR)/, $(CC65_CBM_C_FILES))
 CC65_CBM_S_FILES := $(addprefix $(CC65_CBM_SRC_DIR)/, $(CC65_CBM_S_FILES))
