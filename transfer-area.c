@@ -22,7 +22,8 @@ void main(void) {
 
 
 static void try(uint8_t page_num) {
-    if (trigger_hypervisor_trap_with_y(0, 0x3a, page_num)) {
+    hypervisor_with_y(0, 0x3a, page_num);
+    if (hypervisor_result.c) {
         printf("SUCCESSFUL\r");
     } else {
         printf("FAILED WITH ERROR %hhu\r", hypervisor_geterrorcode());
