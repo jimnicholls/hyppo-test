@@ -15,6 +15,7 @@ static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
 static uint8_t      current_partition;
 
 
+static void     close_directory(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
@@ -28,7 +29,7 @@ static const char* const help_text = (
 "CWD            CHANGE WORKING DIRECTORY                                  $00:$0C"
 "OPD            OPEN DIRECTORY                                            $00:$12"
 "RNX            READ NEXT DIRECTORY ENTRY                                 $00:$14"
-"CLD            CLOSE DIRECTORY                                           $00:$16"
+"CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
 "OPF            OPEN FILE                                                 $00:$18"
 "RDF            READ FROM A FILE                                          $00:$1A"
 "CLF            CLOSE A FILE                                              $00:$20"
@@ -68,6 +69,8 @@ void main(void) {
             select_partition();
         } else if (strncmp("OPD", cmd, 3) == 0) {
             open_directory();
+        } else if (strncmp("CLD", cmd, 3) == 0) {
+            close_directory();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -98,6 +101,17 @@ static void read_input_line(void)
         c = (char)fgetc(stdin);
     }
     input_line[MAX_INPUT_LINE - 1] = '\0';
+}
+
+
+static void close_directory(void) {
+    int part = atoi(arg);
+    if (part < 0 || part > 255) {
+        puts("\a\x81? FILE NUMBER MUST BE BETWEEN 0 AND 255");
+    } else {
+        hypervisor_with_x(0x00, 0x16, part);
+        report_success_or_failed();
+    }
 }
 
 
