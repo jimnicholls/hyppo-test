@@ -15,6 +15,7 @@ static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
 static uint8_t      current_partition;
 
 
+static bool     arg_to_uint8(char* c, uint8_t *v);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
@@ -110,6 +111,18 @@ static void read_input_line(void)
 }
 
 
+static bool arg_to_uint8(char* c, uint8_t *v) {
+    int i = strlen(c) == 0 ? -1 : atoi(c);
+    if (i < 0 || i > 255) {
+        puts("\a\x81? ARG MUST BE BETWEEN 0 AND 255");
+        return false;
+    } else {
+        *v = i;
+        return true;
+    }
+}
+
+
 static void close_all(void) {
     hypervisor(0x00, 0x22);
     report_success_or_failed();
@@ -117,22 +130,18 @@ static void close_all(void) {
 
 
 static void close_directory(void) {
-    int part = atoi(arg);
-    if (part < 0 || part > 255) {
-        puts("\a\x81? FILE NUMBER MUST BE BETWEEN 0 AND 255");
-    } else {
-        hypervisor_with_x(0x00, 0x16, part);
+    uint8_t fnum;
+    if (arg_to_uint8(arg, &fnum)) {
+        hypervisor_with_x(0x00, 0x16, fnum);
         report_success_or_failed();
     }
 }
 
 
 static void close_file(void) {
-    int part = atoi(arg);
-    if (part < 0 || part > 255) {
-        puts("\a\x81? FILE NUMBER MUST BE BETWEEN 0 AND 255");
-    } else {
-        hypervisor_with_x(0x00, 0x20, part);
+    uint8_t fnum;
+    if (arg_to_uint8(arg, &fnum)) {
+        hypervisor_with_x(0x00, 0x20, fnum);
         report_success_or_failed();
     }
 }
@@ -172,10 +181,8 @@ static void report_success_or_failed(void) {
 
 
 static void select_partition(void) {
-    int part = atoi(arg);
-    if (part < 0 || part > 255) {
-        puts("\a\x81? NUMBER MUST BE BETWEEN 0 AND 255");
-    } else {
+    uint8_t part;
+    if (arg_to_uint8(arg, &part)) {
         hypervisor_with_x(0x00, 0x06, part);
         report_success_or_failed();
         current_partition = hdos_get_current_partition();
