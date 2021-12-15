@@ -6,8 +6,8 @@
 #include <string.h>
 
 
-static uint8_t hyppo_get_current_partition(void);
-static uint8_t hyppo_get_default_partition(void);
+static uint8_t hdos_get_current_partition(void);
+static uint8_t hdos_get_default_partition(void);
 static void read_input_line(void);
 static void report_success_or_failed(void);
 static void select_partition(void);
@@ -51,8 +51,8 @@ static uint8_t current_partition;
 
 void main(void) {
     printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
-    printf("      DEFAULT PARTITION: %hhu\r", hyppo_get_default_partition());
-    current_partition = hyppo_get_current_partition();
+    printf("      DEFAULT PARTITION: %hhu\r", hdos_get_default_partition());
+    current_partition = hdos_get_current_partition();
     for (;;) {
         memset(input_line, 0, MAX_INPUT_LINE - 1);
         printf("\r\x05%hhu> ", current_partition);
@@ -98,13 +98,13 @@ static void read_input_line(void)
 }
 
 
-static uint8_t hyppo_get_current_partition(void) {
+static uint8_t hdos_get_current_partition(void) {
     hypervisor(0x00, 0x04);
     return hypervisor_result.a;
 }
 
 
-static uint8_t hyppo_get_default_partition(void) {
+static uint8_t hdos_get_default_partition(void) {
     hypervisor(0x00, 0x02);
     return hypervisor_result.a;
 }
@@ -126,6 +126,6 @@ static void select_partition(void) {
     } else {
         hypervisor_with_x(0x00, 0x06, part);
         report_success_or_failed();
-        current_partition = hyppo_get_current_partition();
+        current_partition = hdos_get_current_partition();
     }
 }
