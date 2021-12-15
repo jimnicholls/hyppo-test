@@ -16,6 +16,7 @@ static uint8_t      current_partition;
 
 
 static void     close_directory(void);
+static void     close_file(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
@@ -32,7 +33,7 @@ static const char* const help_text = (
 "CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
 "OPF            OPEN FILE                                                 $00:$18"
 "RDF            READ FROM A FILE                                          $00:$1A"
-"CLF            CLOSE A FILE                                              $00:$20"
+"CLF FNUM       CLOSE A FILE                                              $00:$20"
 "CLA            CLOSE ALL OPEN FILES                                      $00:$22"
 "SFN NAME       SET THE CURRENT FILENAME                                  $00:$2E"
 "FFI            FIND FIRST MATCHING FILE                                  $00:$30"
@@ -71,6 +72,8 @@ void main(void) {
             open_directory();
         } else if (strncmp("CLD", cmd, 3) == 0) {
             close_directory();
+        } else if (strncmp("CLF", cmd, 3) == 0) {
+            close_file();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -110,6 +113,17 @@ static void close_directory(void) {
         puts("\a\x81? FILE NUMBER MUST BE BETWEEN 0 AND 255");
     } else {
         hypervisor_with_x(0x00, 0x16, part);
+        report_success_or_failed();
+    }
+}
+
+
+static void close_file(void) {
+    int part = atoi(arg);
+    if (part < 0 || part > 255) {
+        puts("\a\x81? FILE NUMBER MUST BE BETWEEN 0 AND 255");
+    } else {
+        hypervisor_with_x(0x00, 0x20, part);
         report_success_or_failed();
     }
 }
