@@ -8,6 +8,7 @@
 
 static uint8_t hdos_get_current_partition(void);
 static uint8_t hdos_get_default_partition(void);
+static void open_directory(void);
 static void read_input_line(void);
 static void report_success_or_failed(void);
 static void select_partition(void);
@@ -65,6 +66,8 @@ void main(void) {
             puts(help_text);
         } else if (strncmp("SEL", cmd, 3) == 0) {
             select_partition();
+        } else if (strncmp("OPD", cmd, 3) == 0) {
+            open_directory();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -110,9 +113,21 @@ static uint8_t hdos_get_default_partition(void) {
 }
 
 
+static void open_directory(void) {
+    hypervisor(0x00, 0x12);
+    if (hypervisor_success()) {
+        printf("OPENED DIRECTORY AS FILE NUMBER %hhu\r", hypervisor_result.a);
+    }
+    report_success_or_failed();
+}
+
+
 static void report_success_or_failed(void) {
-    if (hypervisor_result.c) {
-        puts("OK");
+    if (hypervisor_success()) {
+        printf(
+            "OK          A = %03hhu, X = %03hhu, Y = %03hhu, Z = %03hhu\r",
+            hypervisor_result.a, hypervisor_result.x, hypervisor_result.y, hypervisor_result.z
+        );
     } else {
         printf("\a\x1C! FAILED WITH ERROR %hhu\r", hypervisor_geterrorcode());
     }

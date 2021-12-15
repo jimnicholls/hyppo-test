@@ -64,4 +64,7 @@ void __fastcall__ _enter_hypervisor_xyz();
     _enter_hypervisor_xyz(); \
 } while (0);
 
+
+#define hypervisor_success() hypervisor_result.c
+
 #endif
