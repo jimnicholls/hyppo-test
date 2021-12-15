@@ -15,6 +15,7 @@ static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
 static uint8_t      current_partition;
 
 
+static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
 static uint8_t  hdos_get_current_partition(void);
@@ -74,6 +75,8 @@ void main(void) {
             close_directory();
         } else if (strncmp("CLF", cmd, 3) == 0) {
             close_file();
+        } else if (strncmp("CLA", cmd, 3) == 0) {
+            close_all();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -104,6 +107,12 @@ static void read_input_line(void)
         c = (char)fgetc(stdin);
     }
     input_line[MAX_INPUT_LINE - 1] = '\0';
+}
+
+
+static void close_all(void) {
+    hypervisor(0x00, 0x22);
+    report_success_or_failed();
 }
 
 
