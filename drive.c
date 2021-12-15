@@ -6,19 +6,22 @@
 #include <string.h>
 
 
-static uint8_t hdos_get_current_partition(void);
-static uint8_t hdos_get_default_partition(void);
-static void open_directory(void);
-static void read_input_line(void);
-static void report_success_or_failed(void);
-static void select_partition(void);
-
-
 #define MAX_INPUT_LINE 80
 #define MAX_COMMAND_LEN 3
-static char input_line[MAX_INPUT_LINE];
-static char* const cmd = input_line;
-static char* const arg = input_line + MAX_COMMAND_LEN + 1;
+static char         input_line[MAX_INPUT_LINE];
+static char* const  cmd = input_line;
+static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
+
+static uint8_t      current_partition;
+
+
+static uint8_t  hdos_get_current_partition(void);
+static uint8_t  hdos_get_default_partition(void);
+static void     open_directory(void);
+static void     read_input_line(void);
+static void     report_success_or_failed(void);
+static void     select_partition(void);
+
 
 static const char* const help_text = (
 "SEL NUM        SELECT SD CARD PARTITION                                  $00:$06"
@@ -45,9 +48,6 @@ static const char* const help_text = (
 "H              HELP\r"
 "X              EXIT"
 );
-
-
-static uint8_t current_partition;
 
 
 void main(void) {
