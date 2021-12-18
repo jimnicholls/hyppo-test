@@ -21,6 +21,7 @@ static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
 static void     find_first(void);
+static void     find_next(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
@@ -118,6 +119,8 @@ void main(void) {
             set_current_filename();
         } else if (strncmp("FFI", cmd, 3) == 0) {
             find_first();
+        } else if (strncmp("FNX", cmd, 3) == 0) {
+            find_next();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -192,6 +195,12 @@ static void find_first(void) {
     if (hypervisor_success()) {
         printf("OPENED DIRECTORY AS FILE NUMBER %hhu\r", hypervisor_result.a);
     }
+    report_success_or_failed();
+}
+
+
+static void find_next(void) {
+    hypervisor(0x00, 0x32);
     report_success_or_failed();
 }
 
