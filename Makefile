@@ -1,4 +1,4 @@
-TARGETS =	drive.prg \
+TARGETS =	hdos-shell.prg \
 			hyppo-ver.prg \
 			transfer-area.prg
 
