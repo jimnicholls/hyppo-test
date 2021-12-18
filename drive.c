@@ -23,6 +23,7 @@ static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
 static void     read_input_line(void);
+static void     read_next_dirent(void);
 static void     report_success_or_failed(void);
 static void     select_partition(void);
 
@@ -31,7 +32,7 @@ static const char* const help_text = (
 "SEL NUM        SELECT SD CARD PARTITION                                  $00:$06"
 "CWD            CHANGE WORKING DIRECTORY                                  $00:$0C"
 "OPD            OPEN DIRECTORY                                            $00:$12"
-"RNX            READ NEXT DIRECTORY ENTRY                                 $00:$14"
+"RNX FNUM       READ NEXT DIRECTORY ENTRY                                 $00:$14"
 "CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
 "OPF            OPEN FILE                                                 $00:$18"
 "RDF            READ FROM A FILE                                          $00:$1A"
@@ -54,6 +55,35 @@ static const char* const help_text = (
 );
 
 
+typedef union {
+    uint8_t             value;
+    struct {
+        unsigned int    read_only       : 1;
+        unsigned int    hidden          : 1;
+        unsigned int    system          : 1;
+        unsigned int    vol_label       : 1;
+        unsigned int    subdirectory    : 1;
+        unsigned int    archive         : 1;
+        unsigned int    device          : 1;
+    };
+} hdos_attrs;
+
+typedef struct {
+    char                lfn[64];
+    uint8_t             lfn_length;
+    char                sfn[13];
+    uint32_t            first_cluster;
+    uint32_t            size;
+    hdos_attrs          attributes;
+} hdos_direntry;
+
+
+hdos_attrs is_vfat(hdos_attrs a) {
+    a.read_only = 1;
+    return a;
+}
+
+
 void main(void) {
     printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
     printf("      DEFAULT PARTITION: %hhu\r", hdos_get_default_partition());
@@ -72,6 +102,8 @@ void main(void) {
             select_partition();
         } else if (strncmp("OPD", cmd, 3) == 0) {
             open_directory();
+        } else if (strncmp("RNX", cmd, 3) == 0) {
+            read_next_dirent();
         } else if (strncmp("CLD", cmd, 3) == 0) {
             close_directory();
         } else if (strncmp("CLF", cmd, 3) == 0) {
@@ -165,6 +197,31 @@ static void open_directory(void) {
         printf("OPENED DIRECTORY AS FILE NUMBER %hhu\r", hypervisor_result.a);
     }
     report_success_or_failed();
+}
+
+
+static void read_next_dirent(void) {
+    uint8_t fnum;
+    hdos_direntry* dirent = (hdos_direntry*) hypervisor_transfer_area;
+    if (arg_to_uint8(arg, &fnum)) {
+        hypervisor_with_xy(0x00, 0x14, fnum, ((uint16_t)hypervisor_transfer_area) >> 8);
+        if (hypervisor_success()) {
+            printf(
+                "%s (%s)\rSIZE: %lld, FIRST CLUSTER: %lld, "
+                "ATTRIBUTES: %c%c%c%c%c%c%c- (%hhd)\r",
+                dirent->lfn, dirent->sfn, dirent->size, dirent->first_cluster,
+                dirent->attributes.read_only    ? 'R' : '-',
+                dirent->attributes.hidden       ? 'H' : '-',
+                dirent->attributes.system       ? 'S' : '-',
+                dirent->attributes.vol_label    ? 'L' : '-',
+                dirent->attributes.subdirectory ? 'D' : '-',
+                dirent->attributes.archive      ? 'A' : '-',
+                dirent->attributes.device       ? 'V' : '-',
+                dirent->attributes.value
+            );
+        }
+        report_success_or_failed();
+    }
 }
 
 
