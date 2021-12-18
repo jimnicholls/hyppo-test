@@ -6,8 +6,9 @@
 #include <string.h>
 
 
-#define MAX_INPUT_LINE 80
 #define MAX_COMMAND_LEN 3
+#define MAX_INPUT_LINE 80
+
 static char         input_line[MAX_INPUT_LINE];
 static char* const  cmd = input_line;
 static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
@@ -25,6 +26,7 @@ static void     open_directory(void);
 static void     read_input_line(void);
 static void     read_next_dirent(void);
 static void     report_success_or_failed(void);
+static void     set_current_filename(void);
 static void     select_partition(void);
 
 
@@ -110,6 +112,8 @@ void main(void) {
             close_file();
         } else if (strncmp("CLA", cmd, 3) == 0) {
             close_all();
+        } else if (strncmp("SFN", cmd, 3) == 0) {
+            set_current_filename();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -204,7 +208,7 @@ static void read_next_dirent(void) {
     uint8_t fnum;
     hdos_direntry* dirent = (hdos_direntry*) hypervisor_transfer_area;
     if (arg_to_uint8(arg, &fnum)) {
-        hypervisor_with_xy(0x00, 0x14, fnum, ((uint16_t)hypervisor_transfer_area) >> 8);
+        hypervisor_with_xy(0x00, 0x14, fnum, hypervisor_transfer_page);
         if (hypervisor_success()) {
             printf(
                 "%s (%s)\rSIZE: %lld, FIRST CLUSTER: %lld, "
@@ -233,6 +237,18 @@ static void report_success_or_failed(void) {
         );
     } else {
         printf("\a\x1C! FAILED WITH ERROR %hhu\r", hypervisor_geterrorcode());
+    }
+}
+
+
+static void set_current_filename(void) {
+    if (strlen(arg) == 0) {
+        puts("\a\x81? ARG REQUIRED");
+    } else {
+        strncpy(hypervisor_transfer_area, arg, 255);
+        hypervisor_transfer_area[255] = '\0';
+        hypervisor_with_y(0x00, 0x2e, hypervisor_transfer_page);
+        report_success_or_failed();
     }
 }
 

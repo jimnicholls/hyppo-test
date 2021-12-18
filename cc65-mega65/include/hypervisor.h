@@ -66,5 +66,7 @@ void __fastcall__ _enter_hypervisor_xyz();
 
 
 #define hypervisor_success() hypervisor_result.c
+#define hypervisor_transfer_page (((uint16_t)hypervisor_transfer_area) >> 8)
+
 
 #endif
