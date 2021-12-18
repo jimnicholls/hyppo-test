@@ -20,6 +20,7 @@ static bool     arg_to_uint8(char* c, uint8_t *v);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
+static void     find(void);
 static void     find_first(void);
 static void     find_next(void);
 static uint8_t  hdos_get_current_partition(void);
@@ -46,7 +47,7 @@ static const char* const help_text = (
 "SFN NAME       SET THE CURRENT FILENAME                                  $00:$2E"
 "FFI            FIND FIRST MATCHING FILE                                  $00:$30"
 "FNX            FIND NEXT MATCHING FILE                                   $00:$32"
-"FIN            FIND MATCHING FILE (ONE ONLY)                             $00:$34"
+"FND            FIND MATCHING FILE (ONE ONLY)                             $00:$34"
 "LFM ADDR       LOAD A FILE INTO MAIN/CHIP MEMORY AT $00XXXXXX            $00:$36"
 "CRT            CHANGE TO ROOT DIRECTORY                                  $00:$3C"
 "LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
@@ -121,6 +122,8 @@ void main(void) {
             find_first();
         } else if (strncmp("FNX", cmd, 3) == 0) {
             find_next();
+        } else if (strncmp("FND", cmd, 3) == 0) {
+            find();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -187,6 +190,12 @@ static void close_file(void) {
         hypervisor_with_x(0x00, 0x20, fnum);
         report_success_or_failed();
     }
+}
+
+
+static void find(void) {
+    hypervisor(0x00, 0x34);
+    report_success_or_failed();
 }
 
 
