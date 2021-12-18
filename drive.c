@@ -20,9 +20,11 @@ static bool     arg_to_uint8(char* c, uint8_t *v);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
+static void     find_first(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
+static void     print_dirent_in_hypervisor_transfer_area(void);
 static void     read_input_line(void);
 static void     read_next_dirent(void);
 static void     report_success_or_failed(void);
@@ -114,6 +116,8 @@ void main(void) {
             close_all();
         } else if (strncmp("SFN", cmd, 3) == 0) {
             set_current_filename();
+        } else if (strncmp("FFI", cmd, 3) == 0) {
+            find_first();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -183,6 +187,15 @@ static void close_file(void) {
 }
 
 
+static void find_first(void) {
+    hypervisor(0x00, 0x30);
+    if (hypervisor_success()) {
+        printf("OPENED DIRECTORY AS FILE NUMBER %hhu\r", hypervisor_result.a);
+    }
+    report_success_or_failed();
+}
+
+
 static uint8_t hdos_get_current_partition(void) {
     hypervisor(0x00, 0x04);
     return hypervisor_result.a;
@@ -204,25 +217,30 @@ static void open_directory(void) {
 }
 
 
+static void print_dirent_in_hypervisor_transfer_area(void) {
+    hdos_direntry* const dirent = (hdos_direntry*) hypervisor_transfer_area;
+    printf(
+        "%s (%s)\rSIZE: %lld, FIRST CLUSTER: %lld, "
+        "ATTRIBUTES: %c%c%c%c%c%c%c- (%hhd)\r",
+        dirent->lfn, dirent->sfn, dirent->size, dirent->first_cluster,
+        dirent->attributes.read_only    ? 'R' : '-',
+        dirent->attributes.hidden       ? 'H' : '-',
+        dirent->attributes.system       ? 'S' : '-',
+        dirent->attributes.vol_label    ? 'L' : '-',
+        dirent->attributes.subdirectory ? 'D' : '-',
+        dirent->attributes.archive      ? 'A' : '-',
+        dirent->attributes.device       ? 'V' : '-',
+        dirent->attributes.value
+    );
+}
+
+
 static void read_next_dirent(void) {
     uint8_t fnum;
-    hdos_direntry* dirent = (hdos_direntry*) hypervisor_transfer_area;
     if (arg_to_uint8(arg, &fnum)) {
         hypervisor_with_xy(0x00, 0x14, fnum, hypervisor_transfer_page);
         if (hypervisor_success()) {
-            printf(
-                "%s (%s)\rSIZE: %lld, FIRST CLUSTER: %lld, "
-                "ATTRIBUTES: %c%c%c%c%c%c%c- (%hhd)\r",
-                dirent->lfn, dirent->sfn, dirent->size, dirent->first_cluster,
-                dirent->attributes.read_only    ? 'R' : '-',
-                dirent->attributes.hidden       ? 'H' : '-',
-                dirent->attributes.system       ? 'S' : '-',
-                dirent->attributes.vol_label    ? 'L' : '-',
-                dirent->attributes.subdirectory ? 'D' : '-',
-                dirent->attributes.archive      ? 'A' : '-',
-                dirent->attributes.device       ? 'V' : '-',
-                dirent->attributes.value
-            );
+            print_dirent_in_hypervisor_transfer_area();
         }
         report_success_or_failed();
     }
