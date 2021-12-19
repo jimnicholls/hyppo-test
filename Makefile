@@ -11,6 +11,19 @@ all: $(TARGETS)
 
 #-------------------------------------------------------------------------------
 
+C1541 = c1541
+
+hyppo-test.d81: $(TARGETS)
+	-rm -f $@
+	$(C1541) -format 'hyppo test,ht' d81 $@
+	$(C1541) $@ \
+		-write hdos-shell.prg "hdos shell" \
+		-write hyppo-ver.prg "hyppo ver" \
+		-write transfer-area.prg "transfer area"
+
+
+#-------------------------------------------------------------------------------
+
 AR = ar65
 AS = ca65
 ASFLAGS = --target none --cpu 4510 -W1

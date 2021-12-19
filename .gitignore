@@ -1,3 +1,4 @@
+*.d81
 *.lib
 *.lbl
 *.lst
@@ -6,3 +7,4 @@
 *.prg
 *.s
 !crt0.s
+*.zip
