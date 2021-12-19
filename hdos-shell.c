@@ -113,7 +113,7 @@ hdos_attrs is_vfat(hdos_attrs a) {
 
 
 void main(void) {
-    printf("\x93\x02\x9a      DISK/STORAGE HYPERVISOR CALLS          H FOR HELP          X TO EXIT      \r\r");
+    printf("\x93\x02\x9a      HDOS SHELL     2021.1 BETA 1           H FOR HELP          X TO EXIT      \r\r");
     printf("      DEFAULT PARTITION: %hhu\r", hdos_get_default_partition());
     current_partition = hdos_get_current_partition();
     for (;;) {
