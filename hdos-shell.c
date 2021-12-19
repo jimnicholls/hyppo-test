@@ -18,6 +18,7 @@ static uint8_t      current_partition;
 
 static bool     arg_to_uint8(char* c, uint8_t *v);
 static void     change_to_root(void);
+static void     change_working_directory(void);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
@@ -37,7 +38,7 @@ static void     select_partition(void);
 
 static const char* const help_text = (
 "\x05""SEL NUM        SELECT SD CARD PARTITION                                  $00:$06"
-"\x9a""CWD            CHANGE WORKING DIRECTORY                                  $00:$0C"
+"\x05""CWD            CHANGE WORKING DIRECTORY                                  $00:$0C"
 "\x05""OPD            OPEN DIRECTORY                                            $00:$12"
 "\x05""RNX FNUM       READ NEXT DIRECTORY ENTRY                                 $00:$14"
 "\x05""CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
@@ -107,6 +108,8 @@ void main(void) {
             puts(help_text);
         } else if (strncmp("SEL", cmd, 3) == 0) {
             select_partition();
+        } else if (strncmp("CWD", cmd, 3) == 0) {
+            change_working_directory();
         } else if (strncmp("OPD", cmd, 3) == 0) {
             open_directory();
         } else if (strncmp("RNX", cmd, 3) == 0) {
@@ -179,6 +182,12 @@ static void change_to_root(void) {
         report_success_or_failed();
         current_partition = hdos_get_current_partition();
     }
+}
+
+
+static void change_working_directory(void) {
+    hypervisor(0x00, 0x0c);
+    report_success_or_failed();
 }
 
 
