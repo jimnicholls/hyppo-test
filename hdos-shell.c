@@ -17,6 +17,7 @@ static uint8_t      current_partition;
 
 
 static bool     arg_to_uint8(char* c, uint8_t *v);
+static void     change_to_root(void);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
@@ -49,7 +50,7 @@ static const char* const help_text = (
 "\x05""FNX            FIND NEXT MATCHING FILE                                   $00:$32"
 "\x05""FND            FIND MATCHING FILE (ONE ONLY)                             $00:$34"
 "\x9a""LFM ADDR       LOAD A FILE INTO MAIN/CHIP MEMORY AT $00XXXXXX            $00:$36"
-"\x9a""CRT            CHANGE TO ROOT DIRECTORY                                  $00:$3C"
+"\x05""CRT NUM        CHANGE TO ROOT DIRECTORY (AND SELECT SD CARD PARTITION)   $00:$3C"
 "\x9a""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
 "\x9a""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
 "\x9a""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
@@ -124,6 +125,8 @@ void main(void) {
             find_next();
         } else if (strncmp("FND", cmd, 3) == 0) {
             find();
+        } else if (strncmp("CRT", cmd, 3) == 0) {
+            change_to_root();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -165,6 +168,16 @@ static bool arg_to_uint8(char* c, uint8_t *v) {
     } else {
         *v = i;
         return true;
+    }
+}
+
+
+static void change_to_root(void) {
+    uint8_t part;
+    if (arg_to_uint8(arg, &part)) {
+        hypervisor_with_x(0x00, 0x3c, part);
+        report_success_or_failed();
+        current_partition = hdos_get_current_partition();
     }
 }
 
