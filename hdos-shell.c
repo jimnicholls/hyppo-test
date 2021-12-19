@@ -27,6 +27,7 @@ static uint8_t      current_partition;
 
 static bool     arg_to_uint8(char *c, uint8_t *v);
 static tristate arg_to_uint16(char **c, uint16_t *v);
+static tristate arg_to_uint32(char **c, uint32_t *v);
 static void     change_to_root(void);
 static void     change_working_directory(void);
 static void     close_all(void);
@@ -37,6 +38,8 @@ static void     find_first(void);
 static void     find_next(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
+static void     load_file_attic(void);
+static void     load_file_main(void);
 static void     open_directory(void);
 static void     open_file(void);
 static void     print_dirent_in_hypervisor_transfer_area(void);
@@ -67,9 +70,9 @@ static const char* const help_text = (
 "\x05""FFI            FIND FIRST MATCHING FILE                                  $00:$30"
 "\x05""FNX            FIND NEXT MATCHING FILE                                   $00:$32"
 "\x05""FND            FIND MATCHING FILE (ONE ONLY)                             $00:$34"
-"\x9a""LFM ADDR       LOAD A FILE INTO MAIN/CHIP MEMORY AT $00XXXXXX            $00:$36"
+"\x05""LFM ADDR       LOAD A FILE INTO MAIN/CHIP MEMORY AT $00XXXXXX            $00:$36"
 "\x05""CRT NUM        CHANGE TO ROOT DIRECTORY (AND SELECT SD CARD PARTITION)   $00:$3C"
-"\x9a""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
+"\x05""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
 "\x9a""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
 "\x9a""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
 "\x9a""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
@@ -151,8 +154,12 @@ void main(void) {
             find_next();
         } else if (strncmp("FND", cmd, 3) == 0) {
             find();
+        } else if (strncmp("LFM", cmd, 3) == 0) {
+            load_file_main();
         } else if (strncmp("CRT", cmd, 3) == 0) {
             change_to_root();
+        } else if (strncmp("LFA", cmd, 3) == 0) {
+            load_file_attic();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -186,7 +193,7 @@ static void read_input_line(void)
 }
 
 
-static bool arg_to_uint8(char* c, uint8_t *v) {
+static bool arg_to_uint8(char *c, uint8_t *v) {
     int i = strlen(c) == 0 ? -1 : atoi(c);
     if (i < 0 || i > 255) {
         puts("\a\x81? ARG MUST BE BETWEEN 0 AND 255");
@@ -199,7 +206,24 @@ static bool arg_to_uint8(char* c, uint8_t *v) {
 
 
 static tristate arg_to_uint16(char **c, uint16_t *v) {
-    long i;
+    uint32_t i;
+    tristate r = arg_to_uint32(c, &i);
+    if (r == TRISTATE_TRUE ) {
+        if (i > 0xffff) {
+            puts("\a\x81? ARG MUST BE BETWEEN 0 AND $FFFF");
+            return TRISTATE_FALSE;
+        } else {
+            *v = i;
+            return TRISTATE_TRUE;
+        }
+    }  else {
+        return r;
+    }
+}
+
+
+static tristate arg_to_uint32(char **c, uint32_t *v) {
+    uint32_t i;
     while (**c == ' ') ++(*c);
     if (!**c) {
         return TRISTATE_OTHER;
@@ -209,13 +233,8 @@ static tristate arg_to_uint16(char **c, uint16_t *v) {
     } else {
         i = strtoul(*c, c, 10);
     }
-    if (i < 0x0000 || i > 0xffff) {
-        puts("\a\x81? ARG MUST BE BETWEEN 0 AND 65535");
-        return TRISTATE_FALSE;
-    } else {
-        *v = i;
-        return TRISTATE_TRUE;
-    }
+    *v = i;
+    return TRISTATE_TRUE;
 }
 
 
@@ -289,6 +308,40 @@ static uint8_t hdos_get_current_partition(void) {
 static uint8_t hdos_get_default_partition(void) {
     hypervisor(0x00, 0x02);
     return hypervisor_result.a;
+}
+
+
+static void load_file_attic(void) {
+    char *p = arg;
+    uint32_t load_address;
+    switch (arg_to_uint32(&p, &load_address)) {
+        case TRISTATE_TRUE:
+            if (load_address < 0x1000000) {
+                break;
+            }
+        default:
+            puts("\a\x81? ARG MUST BE BETWEEN $000000 AND $FFFFFF");
+            return;
+    }
+    hypervisor_with_xyz(0x00, 0x3e, load_address & 0xFF, (load_address >> 8) & 0xFF, (load_address >> 16) & 0xFF);
+    report_success_or_failed();
+}
+
+
+static void load_file_main(void) {
+    char *p = arg;
+    uint32_t load_address;
+    switch (arg_to_uint32(&p, &load_address)) {
+        case TRISTATE_TRUE:
+            if (load_address < 0x1000000) {
+                break;
+            }
+        default:
+            puts("\a\x81? ARG MUST BE BETWEEN $000000 AND $FFFFFF");
+            return;
+    }
+    hypervisor_with_xyz(0x00, 0x36, load_address & 0xFF, (load_address >> 8) & 0xFF, (load_address >> 16) & 0xFF);
+    report_success_or_failed();
 }
 
 
