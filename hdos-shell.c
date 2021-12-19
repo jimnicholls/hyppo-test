@@ -1,3 +1,5 @@
+#include <45io27.h>
+#include <ctype.h>
 #include <hypervisor.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,6 +11,13 @@
 #define MAX_COMMAND_LEN 3
 #define MAX_INPUT_LINE 80
 
+
+typedef uint8_t tristate;
+#define TRISTATE_FALSE ((uint8_t) false)
+#define TRISTATE_TRUE  ((uint8_t) true)
+#define TRISTATE_OTHER ((uint8_t) 255)
+
+
 static char         input_line[MAX_INPUT_LINE];
 static char* const  cmd = input_line;
 static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
@@ -16,7 +25,8 @@ static char* const  arg = input_line + MAX_COMMAND_LEN + 1;
 static uint8_t      current_partition;
 
 
-static bool     arg_to_uint8(char* c, uint8_t *v);
+static bool     arg_to_uint8(char *c, uint8_t *v);
+static tristate arg_to_uint16(char **c, uint16_t *v);
 static void     change_to_root(void);
 static void     change_working_directory(void);
 static void     close_all(void);
@@ -30,6 +40,11 @@ static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
 static void     open_file(void);
 static void     print_dirent_in_hypervisor_transfer_area(void);
+static void     print_hex_nibble(uint8_t v);
+static void     print_hex_uint8(uint8_t v);
+static void     print_hex_uint16(uint16_t v);
+static void     print_sector_buffer(void);
+static uint8_t* print_sector_buffer_line(uint8_t *buf, uint8_t len);
 static void     read_file(void);
 static void     read_input_line(void);
 static void     read_next_dirent(void);
@@ -60,7 +75,7 @@ static const char* const help_text = (
 "\x9a""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
 "\x9a""AT1            ATTACH A D81 DISK IMAGE TO DRIVE 1                        $00:$46"
 "\x05\r\r"
-"H              HELP\r"
+"P OFFSET LEN   PRINT THE SECTOR BUFFER     ($ FOR HEX)\r"
 "X              EXIT"
 );
 
@@ -108,6 +123,8 @@ void main(void) {
             break;
         } else if (strncmp("H", cmd, 1) == 0) {
             puts(help_text);
+        } else if (strncmp("P", cmd, 1) == 0) {
+            print_sector_buffer();
         } else if (strncmp("SEL", cmd, 3) == 0) {
             select_partition();
         } else if (strncmp("CWD", cmd, 3) == 0) {
@@ -177,6 +194,27 @@ static bool arg_to_uint8(char* c, uint8_t *v) {
     } else {
         *v = i;
         return true;
+    }
+}
+
+
+static tristate arg_to_uint16(char **c, uint16_t *v) {
+    long i;
+    while (**c == ' ') ++(*c);
+    if (!**c) {
+        return TRISTATE_OTHER;
+    }
+    if (**c == '$') {
+        i = strtoul(++(*c), c, 16);
+    } else {
+        i = strtoul(*c, c, 10);
+    }
+    if (i < 0x0000 || i > 0xffff) {
+        puts("\a\x81? ARG MUST BE BETWEEN 0 AND 65535");
+        return TRISTATE_FALSE;
+    } else {
+        *v = i;
+        return TRISTATE_TRUE;
     }
 }
 
@@ -287,6 +325,121 @@ static void print_dirent_in_hypervisor_transfer_area(void) {
         dirent->attributes.device       ? 'V' : '-',
         dirent->attributes.value
     );
+}
+
+
+static void print_hex_nibble(uint8_t v) {
+    putchar(v < 10 ? 48 + v : 55 + v);
+}
+
+
+static void print_hex_uint8(uint8_t v) {
+    print_hex_nibble(v >> 4);
+    print_hex_nibble(v & 0xF);
+}
+
+
+static void print_hex_uint16(uint16_t v) {
+    print_hex_uint8(v >> 8);
+    print_hex_uint8(v & 0xFF);
+}
+
+
+static void print_sector_buffer(void) {
+    uint16_t offset, len;
+    uint16_t max_len;
+    uint8_t *sb = sector_buffer;
+    char* c = input_line + 1;
+    switch (arg_to_uint16(&c, &offset)) {
+        case TRISTATE_FALSE:
+            return;
+        case TRISTATE_TRUE:
+            if (offset > 511) {
+                puts("\a\x81? OFFSET MUST BE BETWEEN 0 AND 511");
+                return;
+            }
+            sb += offset;
+            break;
+        case TRISTATE_OTHER:
+            offset = 0;
+            break;
+    }
+    max_len = 512 - offset;
+    switch (arg_to_uint16(&c, &len)) {
+        case TRISTATE_FALSE:
+            return;
+        case TRISTATE_TRUE:
+            if (len < 1 || len > 512) {
+                puts("\a\x81? LEN MUST BE BETWEEN 1 AND 512");
+                return;
+            }
+            if (len > max_len) {
+                len = max_len;
+            }
+            break;
+        case TRISTATE_OTHER:
+            len = max_len > 256 ? 256 : max_len;
+            break;
+    }
+    map_sector_buffer();
+    for (; len > 16; len -= 16) {
+        sb = print_sector_buffer_line(sb, 16);
+    }
+    if (len != 0) {
+        sb = print_sector_buffer_line(sb, len);
+    }
+    unmap_sector_buffer();
+    putchar('\r');
+}
+
+
+static uint8_t* print_sector_buffer_line(uint8_t *buf, uint8_t len) {
+    uint8_t* p = buf;
+    uint8_t i;
+    print_hex_uint16((uint16_t)p);
+    for (i = 4; i > 0; --i) putchar(' ');
+    for (i = 0; i < 8; ++i, ++p) {
+        putchar(' ');
+        if (i < len) {
+            print_hex_uint8(*p);
+        } else {
+            putchar(' ');
+            putchar(' ');
+        }
+    }
+    putchar(' ');
+    putchar(len > 8 ? '\x7d' : ' ');
+    for (; i < 16; ++i, ++p) {
+        putchar(' ');
+        if (i < len) {
+            print_hex_uint8(*p);
+        } else {
+            putchar(' ');
+            putchar(' ');
+        }
+    }
+    p = buf;
+    for (i = 5; i > 0; --i) putchar(' ');
+    for (i = 0; i < 8; ++i, ++p) {
+        putchar(
+            i >= len
+            ? ' '
+            : isprint(*p)
+            ? *p
+            : '.'
+        );
+    }
+    putchar(len > 8 ? '\x7d' : ' ');
+    for (; i < 16; ++i, ++p) {
+        putchar(
+            i >= len
+            ? ' '
+            : isprint(*p)
+            ? *p
+            : '.'
+        );
+    }
+    return p;
 }
 
 
