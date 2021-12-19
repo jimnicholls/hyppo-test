@@ -28,6 +28,7 @@ static void     find_next(void);
 static uint8_t  hdos_get_current_partition(void);
 static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
+static void     open_file(void);
 static void     print_dirent_in_hypervisor_transfer_area(void);
 static void     read_input_line(void);
 static void     read_next_dirent(void);
@@ -42,7 +43,7 @@ static const char* const help_text = (
 "\x05""OPD            OPEN DIRECTORY                                            $00:$12"
 "\x05""RNX FNUM       READ NEXT DIRECTORY ENTRY                                 $00:$14"
 "\x05""CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
-"\x9a""OPF            OPEN FILE                                                 $00:$18"
+"\x05""OPF            OPEN FILE                                                 $00:$18"
 "\x9a""RDF            READ FROM A FILE                                          $00:$1A"
 "\x05""CLF FNUM       CLOSE A FILE                                              $00:$20"
 "\x05""CLA            CLOSE ALL OPEN FILES                                      $00:$22"
@@ -116,6 +117,8 @@ void main(void) {
             read_next_dirent();
         } else if (strncmp("CLD", cmd, 3) == 0) {
             close_directory();
+        } else if (strncmp("OPF", cmd, 3) == 0) {
+            open_file();
         } else if (strncmp("CLF", cmd, 3) == 0) {
             close_file();
         } else if (strncmp("CLA", cmd, 3) == 0) {
@@ -252,6 +255,15 @@ static void open_directory(void) {
     hypervisor(0x00, 0x12);
     if (hypervisor_success()) {
         printf("OPENED DIRECTORY AS FILE NUMBER %hhu\r", hypervisor_result.a);
+    }
+    report_success_or_failed();
+}
+
+
+static void open_file(void) {
+    hypervisor(0x00, 0x18);
+    if (hypervisor_success()) {
+        printf("OPENED FILE AS FILE NUMBER %hhu\r", hypervisor_result.a);
     }
     report_success_or_failed();
 }
