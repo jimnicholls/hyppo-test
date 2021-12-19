@@ -10,62 +10,76 @@ They were created to exercise the Hypervisor on [xemu](https://github.com/lgblgb
 ## Test results
 
 These test were performed using:
-- Mega65 MegaOS Hypervisor v00.16; git: hwsc,20211208.20,A390DFE
-- Mega65 ROM 920265
-- xemu custom-build hyppo@0a9cda6
+- Mega65 MegaOS Hypervisor v00.16; git: jim,20211219.15,b778361
+- Mega65 ROM 920269
+- xemu custom-build hyppo@88222f
+
+The Hypervisor includes these pull requests:
+- [Restore X before using it in dos_selectdrive and dos_cdroot](https://github.com/MEGA65/mega65-core/pull/479)
+- [Clear the correct file descriptor entry in dos_get_free_descriptor](https://github.com/MEGA65/mega65-core/pull/480)
+- [Close the correct file descriptor entry in trap_dos_closefile](https://github.com/MEGA65/mega65-core/pull/481)
+- [Clear the file descriptors in dos_clear_filedescriptors](https://github.com/MEGA65/mega65-core/pull/482)
+- [Have trap_dos_geterrorcode return error code of prior trap_dos_setname](https://github.com/MEGA65/mega65-core/pull/487)
+- [Return the file descriptor in A from trap_dos_findfirst](https://github.com/MEGA65/mega65-core/pull/488)
+- [Signal if trap_dos_cdrootdir fails](https://github.com/MEGA65/mega65-core/pull/489)
+- [Fixes for dos_chdir](https://github.com/MEGA65/mega65-core/pull/490)
+- [Return the file descriptor in A from trap_dos_openfile](https://github.com/MEGA65/mega65-core/pull/491)
+
 
 ### General services
 
 | Trap | Func | Service | Program | Status |
 | --- | --- | --- | --- | --- |
-| $00 | $00 | Get Hypervisor Version | [hyppo-ver.prg](hyppo-ver.c) | Passes |
-| $00 | $38 | Get Current Error Code | [transfer-area.prg](transfer-area.c) | Passes |
-| $00 | $3a | Setup Transfer Area for Other Calls | [transfer-area.prg](transfer-area.c) | Passes |
+| $00 | $00 | Get Hypervisor Version | [hyppo-ver.prg](hyppo-ver.c) | :white_check_mark: Passes |
+| $00 | $38 | Get Current Error Code | [transfer-area.prg](transfer-area.c) | :white_check_mark: Passes |
+| $00 | $3a | Setup Transfer Area for Other Calls | [transfer-area.prg](transfer-area.c) | :white_check_mark: Passes |
 
 
 ### Disk/storage hypervisor calls
 
-| Trap | Func | Service | Program | Status |
-| --- | --- | --- | --- | --- |
-| $00 | $02 | Get Default Drive (SD card Partition) | [drive.prg](drive.c) | Passes |
-| $00 | $04 | Get Current Drive (SD card Partition) | [drive.prg](drive.c) | Passes |
-| $00 | $06 | Select Drive (SD card Partition) | [drive.prg](drive.c) | Fails due to a Hyppo bug |
-| $00 | $08 | Get Disk Size | Not written | Not implemented |
-| $00 | $0A | Get Current Working Directory | Not written | Not implemented |
-| $00 | $0C | Change Working Directory | Not written | Not tested |
-| $00 | $0E | Create Directory | Not written | Not implemented |
-| $00 | $10 | Remove Directory | Not written | Not implemented |
-| $00 | $12 | Open Directory | Not written | Not tested |
-| $00 | $14 | Read Next Directory Entry | Not written | Not tested |
-| $00 | $16 | Close Directory | Not written | Not tested |
-| $00 | $18 | Open File | Not written | Not tested |
-| $00 | $1A | Read From a File | Not written | Not tested |
-| $00 | $1C | Write to a File | Not written | Not implemented |
-| $00 | $1E | Create File | Not written | Not implemented |
-| $00 | $20 | Close File | Not written | Not tested |
-| $00 | $22 | Close All Open Files | Not written | Not tested |
-| $00 | $24 | Seek to a Given Offset in a File | Not written | Not implemented |
-| $00 | $26 | Delete a File | Not written | Not implemented |
-| $00 | $28 | Get Information About a File | Not written | Not implemented |
-| $00 | $2A | Rename a File | Not written | Not implemented |
-| $00 | $2C | Set time stamp of a file | Not written | Not implemented |
-| $00 | $2E | Set the current filename | Not written | Not tested |
-| $00 | $30 | Find first matching file | Not written | Not tested |
-| $00 | $32 | Find subsequent matching file | Not written | Not tested |
-| $00 | $34 | Find matching file (one only) | Not written | Not tested |
-| $00 | $36 | Load a File into Main Memory | Not written | Not tested |
-| $00 | $3C | Change Working Directory to Root Directory of Selected Partition | Not written | Not tested |
-| $00 | $3E | Load a File into Attic Memory | Not written | Not tested |
+Tested using [hdos-shell.prg](hdos-shell.c).
+
+| Trap | Func | Service | Status |
+| --- | --- | --- | --- |
+| $00 | $02 | Get Default Drive (SD card Partition) | :white_check_mark: Passes |
+| $00 | $04 | Get Current Drive (SD card Partition) | :white_check_mark: Passes |
+| $00 | $06 | Select Drive (SD card Partition) | :white_check_mark: Passes |
+| $00 | $08 | Get Disk Size | Not implemented |
+| $00 | $0A | Get Current Working Directory | Not implemented |
+| $00 | $0C | Change Working Directory | :white_check_mark: Passes |
+| $00 | $0E | Create Directory | Not implemented |
+| $00 | $10 | Remove Directory | Not implemented |
+| $00 | $12 | Open Directory | :white_check_mark: Passes |
+| $00 | $14 | Read Next Directory Entry | :white_check_mark: Passes |
+| $00 | $16 | Close Directory | :white_check_mark: Passes |
+| $00 | $18 | Open File | :white_check_mark: Passes |
+| $00 | $1A | Read From a File | :white_check_mark: Passes |
+| $00 | $1C | Write to a File | Not implemented |
+| $00 | $1E | Create File | Not implemented |
+| $00 | $20 | Close File | :white_check_mark: Passes |
+| $00 | $22 | Close All Open Files | :white_check_mark: Passes |
+| $00 | $24 | Seek to a Given Offset in a File | Not implemented |
+| $00 | $26 | Delete a File | Not implemented |
+| $00 | $28 | Get Information About a File | Not implemented |
+| $00 | $2A | Rename a File | Not implemented |
+| $00 | $2C | Set time stamp of a file | Not implemented |
+| $00 | $2E | Set the current filename | :white_check_mark: Passes |
+| $00 | $30 | Find first matching file | :white_check_mark: Passes |
+| $00 | $32 | Find subsequent matching file | :white_check_mark: Passes |
+| $00 | $34 | Find matching file (one only) | :white_check_mark: Passes |
+| $00 | $36 | Load a File into Main Memory | :white_check_mark: Passes |
+| $00 | $3C | Change Working Directory to Root Directory of Selected Partition | :white_check_mark: Passes |
+| $00 | $3E | Load a File into Attic Memory | :white_check_mark: Passes |
 
 
 ### Disk image management
 
-| Trap | Func | Service | Program | Status |
-| --- | --- | --- | --- | --- |
-| $00 | $40 | Attach a D81 Disk Image to Drive 0 | Not written | Not tested |
-| $00 | $42 | Detach All D81 Disk Images | Not written | Not tested |
-| $00 | $44 | Write Enable All Currently Attached D81 Disk Images | Not written | Not tested |
-| $00 | $46 | Attach a D81 Disk Image to Drive 1 | Not written | Not tested |
+| Trap | Func | Service | Status |
+| --- | --- | --- | --- |
+| $00 | $40 | Attach a D81 Disk Image to Drive 0 | Not tested |
+| $00 | $42 | Detach All D81 Disk Images | Not tested |
+| $00 | $44 | Write Enable All Currently Attached D81 Disk Images | Not tested |
+| $00 | $46 | Attach a D81 Disk Image to Drive 1 | Not tested |
 
 
 ### Task and process management
