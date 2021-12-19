@@ -30,6 +30,7 @@ static uint8_t  hdos_get_default_partition(void);
 static void     open_directory(void);
 static void     open_file(void);
 static void     print_dirent_in_hypervisor_transfer_area(void);
+static void     read_file(void);
 static void     read_input_line(void);
 static void     read_next_dirent(void);
 static void     report_success_or_failed(void);
@@ -44,7 +45,7 @@ static const char* const help_text = (
 "\x05""RNX FNUM       READ NEXT DIRECTORY ENTRY                                 $00:$14"
 "\x05""CLD FNUM       CLOSE DIRECTORY                                           $00:$16"
 "\x05""OPF            OPEN FILE                                                 $00:$18"
-"\x9a""RDF            READ FROM A FILE                                          $00:$1A"
+"\x05""RDF            READ FROM A FILE                                          $00:$1A"
 "\x05""CLF FNUM       CLOSE A FILE                                              $00:$20"
 "\x05""CLA            CLOSE ALL OPEN FILES                                      $00:$22"
 "\x05""SFN NAME       SET THE CURRENT FILENAME                                  $00:$2E"
@@ -119,6 +120,8 @@ void main(void) {
             close_directory();
         } else if (strncmp("OPF", cmd, 3) == 0) {
             open_file();
+        } else if (strncmp("RDF", cmd, 3) == 0) {
+            read_file();
         } else if (strncmp("CLF", cmd, 3) == 0) {
             close_file();
         } else if (strncmp("CLA", cmd, 3) == 0) {
@@ -284,6 +287,21 @@ static void print_dirent_in_hypervisor_transfer_area(void) {
         dirent->attributes.device       ? 'V' : '-',
         dirent->attributes.value
     );
+}
+
+
+static void read_file(void) {
+    uint16_t bytes_read;
+    hypervisor(0x00, 0x1a);
+    bytes_read = (((uint16_t) hypervisor_result.y) << 8) + hypervisor_result.x;
+    if (hypervisor_success()) {
+        printf("READ %u BYTES INTO THE SECTOR BUFFER\r", bytes_read);
+        report_success_or_failed();
+    } else if (bytes_read == 0) {
+        puts("END OF FILE");
+    } else {
+        report_success_or_failed();
+    }
 }
 
 
