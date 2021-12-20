@@ -28,6 +28,8 @@ static uint8_t      current_partition;
 static bool     arg_to_uint8(char *c, uint8_t *v);
 static tristate arg_to_uint16(char **c, uint16_t *v);
 static tristate arg_to_uint32(char **c, uint32_t *v);
+static void     attach_disk_image_0(void);
+static void     attach_disk_image_1(void);
 static void     change_to_root(void);
 static void     change_working_directory(void);
 static void     close_all(void);
@@ -74,10 +76,10 @@ static const char* const help_text = (
 "\x05""LFM ADDR       LOAD A FILE INTO MAIN/CHIP MEMORY AT $00XXXXXX            $00:$36"
 "\x05""CRT NUM        CHANGE TO ROOT DIRECTORY (AND SELECT SD CARD PARTITION)   $00:$3C"
 "\x05""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
-"\x9a""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
+"\x05""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
 "\x05""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
 "\x9a""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
-"\x9a""AT1            ATTACH A D81 DISK IMAGE TO DRIVE 1                        $00:$46"
+"\x05""AT1            ATTACH A D81 DISK IMAGE TO DRIVE 1                        $00:$46"
 "\x05\r\r"
 "P OFFSET LEN   PRINT THE SECTOR BUFFER     ($ FOR HEX)\r"
 "X              EXIT"
@@ -161,8 +163,12 @@ void main(void) {
             change_to_root();
         } else if (strncmp("LFA", cmd, 3) == 0) {
             load_file_attic();
+        } else if (strncmp("AT0", cmd, 3) == 0) {
+            attach_disk_image_1();
         } else if (strncmp("DET", cmd, 3) == 0) {
             detatch_disk_images();
+        } else if (strncmp("AT1", cmd, 3) == 0) {
+            attach_disk_image_1();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -238,6 +244,18 @@ static tristate arg_to_uint32(char **c, uint32_t *v) {
     }
     *v = i;
     return TRISTATE_TRUE;
+}
+
+
+static void attach_disk_image_0(void) {
+    hypervisor(0x00, 0x40);
+    report_success_or_failed();
+}
+
+
+static void attach_disk_image_1(void) {
+    hypervisor(0x00, 0x46);
+    report_success_or_failed();
 }
 
 
