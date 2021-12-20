@@ -33,6 +33,7 @@ static void     change_working_directory(void);
 static void     close_all(void);
 static void     close_directory(void);
 static void     close_file(void);
+static void     detatch_disk_images(void);
 static void     find(void);
 static void     find_first(void);
 static void     find_next(void);
@@ -74,7 +75,7 @@ static const char* const help_text = (
 "\x05""CRT NUM        CHANGE TO ROOT DIRECTORY (AND SELECT SD CARD PARTITION)   $00:$3C"
 "\x05""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
 "\x9a""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
-"\x9a""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
+"\x05""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
 "\x9a""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
 "\x9a""AT1            ATTACH A D81 DISK IMAGE TO DRIVE 1                        $00:$46"
 "\x05\r\r"
@@ -160,6 +161,8 @@ void main(void) {
             change_to_root();
         } else if (strncmp("LFA", cmd, 3) == 0) {
             load_file_attic();
+        } else if (strncmp("DET", cmd, 3) == 0) {
+            detatch_disk_images();
         } else {
             puts("\a\x81? DID NOT RECOGNISE COMMAND                  H FOR HELP          X TO EXIT");
         }
@@ -275,6 +278,12 @@ static void close_file(void) {
         hypervisor_with_x(0x00, 0x20, fnum);
         report_success_or_failed();
     }
+}
+
+
+static void detatch_disk_images(void) {
+    hypervisor(0x00, 0x42);
+    report_success_or_failed();
 }
 
 
