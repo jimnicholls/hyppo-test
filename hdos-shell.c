@@ -57,6 +57,7 @@ static void     read_next_dirent(void);
 static void     report_success_or_failed(void);
 static void     set_current_filename(void);
 static void     select_partition(void);
+static void     write_enable_disk_images();
 
 
 static const char* const help_text = (
@@ -78,7 +79,7 @@ static const char* const help_text = (
 "\x05""LFA ADDR       LOAD A FILE INTO ATTIC/HYPER MEMORY AT $08XXXXXX          $00:$3E"
 "\x05""AT0            ATTACH A D81 DISK IMAGE TO DRIVE 0                        $00:$40"
 "\x05""DET            DETACH ALL D81 DISK IMAGES                                $00:$42"
-"\x9a""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
+"\x05""WRE            WRITE ENABLE ALL CURRENTLY ATTACHED D81 DISK IMAGES       $00:$44"
 "\x05""AT1            ATTACH A D81 DISK IMAGE TO DRIVE 1                        $00:$46"
 "\x05\r\r"
 "P OFFSET LEN   PRINT THE SECTOR BUFFER     ($ FOR HEX)\r"
@@ -167,6 +168,8 @@ void main(void) {
             attach_disk_image_1();
         } else if (strncmp("DET", cmd, 3) == 0) {
             detatch_disk_images();
+        } else if (strncmp("WRE", cmd, 3) == 0) {
+            write_enable_disk_images();
         } else if (strncmp("AT1", cmd, 3) == 0) {
             attach_disk_image_1();
         } else {
@@ -581,4 +584,10 @@ static void select_partition(void) {
         report_success_or_failed();
         current_partition = hdos_get_current_partition();
     }
+}
+
+
+static void write_enable_disk_images(void) {
+    hypervisor(0x00, 0x44);
+    report_success_or_failed();
 }
