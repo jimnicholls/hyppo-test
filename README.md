@@ -10,19 +10,11 @@ They were created to exercise the Hypervisor on [xemu](https://github.com/lgblgb
 ## Test results
 
 These test were performed using:
-- Mega65 MegaOS Hypervisor v00.16; git: jim,20211219.15,b778361
+- Mega65 MegaOS Hypervisor v00.16; git: jim,20211220.16,7770cf7
 - Mega65 ROM 920269
 - xemu custom-build hyppo@88222f
 
 The Hypervisor includes these pull requests:
-- [Restore X before using it in dos_selectdrive and dos_cdroot](https://github.com/MEGA65/mega65-core/pull/479)
-- [Clear the correct file descriptor entry in dos_get_free_descriptor](https://github.com/MEGA65/mega65-core/pull/480)
-- [Close the correct file descriptor entry in trap_dos_closefile](https://github.com/MEGA65/mega65-core/pull/481)
-- [Clear the file descriptors in dos_clear_filedescriptors](https://github.com/MEGA65/mega65-core/pull/482)
-- [Have trap_dos_geterrorcode return error code of prior trap_dos_setname](https://github.com/MEGA65/mega65-core/pull/487)
-- [Return the file descriptor in A from trap_dos_findfirst](https://github.com/MEGA65/mega65-core/pull/488)
-- [Signal if trap_dos_cdrootdir fails](https://github.com/MEGA65/mega65-core/pull/489)
-- [Fixes for dos_chdir](https://github.com/MEGA65/mega65-core/pull/490)
 - [Return the file descriptor in A from trap_dos_openfile](https://github.com/MEGA65/mega65-core/pull/491)
 
 
@@ -76,10 +68,14 @@ Tested using [hdos-shell.prg](hdos-shell.c).
 
 | Trap | Func | Service | Status |
 | --- | --- | --- | --- |
-| $00 | $40 | Attach a D81 Disk Image to Drive 0 | Not tested |
-| $00 | $42 | Detach All D81 Disk Images | Not tested |
-| $00 | $44 | Write Enable All Currently Attached D81 Disk Images | Not tested |
-| $00 | $46 | Attach a D81 Disk Image to Drive 1 | Not tested |
+| $00 | $40 | Attach a D81 Disk Image to Drive 0 | :x: Fails ¹ |
+| $00 | $42 | Detach All D81 Disk Images | :white_check_mark: Passes |
+| $00 | $44 | Write Enable All Currently Attached D81 Disk Images | :question: See [mega65-core/issues/494](https://github.com/MEGA65/mega65-core/issues/494) |
+| $00 | $46 | Attach a D81 Disk Image to Drive 1 | :x: Fails ² |
+
+¹ The hypervisor code works, but CBDOS seems to get out sync reporting either 74 drive not ready or the previously mounted image.
+
+² The hypervisor code works, but CBDOS always reports a 74 drive not ready. This happens with BASIC's MOUNT command as well.
 
 
 ### Task and process management
