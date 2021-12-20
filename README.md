@@ -1,5 +1,14 @@
 # Mega65 Hypervisor Tests
 
+
+## :warning: Under hiatus
+
+Further work on this is unlikely to happen, at least in its current form.
+See [mega65-core/issues/492](https://github.com/MEGA65/mega65-core/issues/492).
+
+
+## Introduction
+
 This is a collection of [Mega65](https://mega65.org/) programs that test out
 the Hypervisor services.
 
